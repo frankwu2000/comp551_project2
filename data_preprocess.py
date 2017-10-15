@@ -12,6 +12,7 @@ train_x = []
 train_y = []
 test_x = []
 
+#load two train data files, one test data file, and formatting them
 with open("data_set/train_set_x.csv","rb") as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     next(reader,None) #skip header of file
@@ -35,6 +36,8 @@ with open("data_set/test_set_x.csv","rb") as csvfile:
         l=text_deletenum.replace(" ","").lower()
         test_x.append(l)
         
+#tfidf preprocessing
+
 vec = TfidfVectorizer(decode_error='strict',analyzer='char',min_df=0)
 train_x=vec.fit_transform(train_x)
 features = vec.get_feature_names()
@@ -47,13 +50,16 @@ test_x = vec2.fit_transform(test_x)
 #print("train_x is a matrix with size : ",train_x.shape[0],train_x.shape[1])
 #print("train_y is an array with size: ",len(train_y))
 
+# Library function : logisticRegression
 lr_classifier = LogisticRegression(penalty='l2', C=1)
 lr_classifier.fit(train_x, train_y)
 
+# predict on the test file
 test_y_pred = lr_classifier.predict(test_x)
 
 test_y_pred_temp = test_y_pred.tolist()
 
+# write the output to the output file
 with open("library_logistic_output.csv",'wb') as output:
     output.write("Id,Category")
     output.write("\n")

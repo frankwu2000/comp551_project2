@@ -17,7 +17,7 @@ def load_dataset():
     global train_y_raw
     global test_x_raw
     
-    with open("data_set/train_set_x.csv","r") as csvfile:
+    with open("data_set/train_set_x.csv","r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
@@ -26,13 +26,13 @@ def load_dataset():
             l=text_deletenum.replace(" ","").lower()
             train_x_raw.append(l)
 
-    with open("data_set/train_set_y.csv","r") as csvfile:
+    with open("data_set/train_set_y.csv","r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
             train_y.append(row[1])
         
-    with open("data_set/test_set_x.csv","r") as csvfile:
+    with open("data_set/test_set_x.csv","r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
@@ -234,7 +234,7 @@ def train_accuracy(predict_y,train_y):
     return correct/len(predict_y)
 
 def output_predict_to_file(predict_y):
-    with open("output_data_set/decision_tree_predict.csv","w") as output:
+    with open("output_data_set/decision_tree_predict.csv","w",encoding='UTF8') as output:
         output.write("Id,Category")
         output.write("\n")
         for i in range(len(predict_y)):
@@ -250,7 +250,7 @@ train_x,test_x=tfidf_preprocess()
 # logistic_regression(train_x,train_y,test_x)
 
 #decision tree
-dt = Decision_tree(0.00001,train_x.shape[1]-1,train_x,train_y)
+dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y)
 root_set = dt.combine_set()
 root=Node(root_set,0)
 print("start building tree...")

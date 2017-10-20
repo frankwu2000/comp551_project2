@@ -77,7 +77,7 @@ def tfidf_preprocess():
     return train_x,test_x
     
 # Library function : logistic classification    
-def logistic_classification(train_x,train_y,test_x):
+def logistic_classification(train_x,train_y,test_x,output_filename):
     lr_classifier = LogisticRegression(penalty='l2', C=1)
     lr_classifier.fit(train_x, train_y)
     # predict on the test file
@@ -85,7 +85,7 @@ def logistic_classification(train_x,train_y,test_x):
     test_y_pred_temp = test_y_pred.tolist()
 
     # write the output to the output file
-    with open("output_data_set/library_logistic_output.csv",'w') as output:
+    with open(output_filename,'w') as output:
         output.write("Id,Category")
         output.write("\n")
         for i in range(len(test_y_pred_temp)):
@@ -244,8 +244,8 @@ def train_accuracy(predict_y,train_y):
             correct += 1
     return correct/len(predict_y)
 
-def output_predict_to_file(predict_y):
-    with open("output_data_set/decision_tree_predict_lessf.csv","w",encoding='UTF8') as output:
+def output_predict_to_file(predict_y,output_filename):
+    with open(output_filename,"w",encoding='UTF8') as output:
         output.write("Id,Category")
         output.write("\n")
         for i in range(len(predict_y)):
@@ -261,7 +261,7 @@ load_dataset("data_set/train_set_x2.csv","data_set/train_set_y2.csv","data_set/t
 train_x,test_x=tfidf_preprocess()
 
 #Library function: logistic 
-#logistic_classification(train_x,train_y,test_x)
+#logistic_classification(train_x,train_y,test_x,"output_data_set/library_logistic_output.csv")
 
 
 #decision tree
@@ -276,7 +276,6 @@ for column in range(train_x.shape[1]):
 
 #Initialize the decision tree
 dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y,featured_columns)
-print(dt.get_sum_dict(featured_columns))
 root_set = dt.combine_set()
 root=Node(root_set,0)
 
@@ -291,7 +290,7 @@ predict_y_values=dt.predict_y(root,test_x)
 
 #Output the result to csv file
 print("finish predicting y...")
-output_predict_to_file(predict_y_values)
+output_predict_to_file(predict_y_values,"output_data_set/decision_tree_predict_1000_samples.csv")
 # print("train accuracy: ",train_accuracy(predict_y_values,train_y))
 print("output file complete")
 

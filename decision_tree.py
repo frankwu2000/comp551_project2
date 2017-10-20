@@ -4,6 +4,8 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer 
 from sklearn.linear_model import LogisticRegression
 import math
+from sklearn.svm import LinearSVC
+from sklearn.feature_selection import SelectFromModel
 
 
 train_x_raw = []
@@ -14,7 +16,6 @@ test_x_raw = []
 def load_dataset():
     
     global train_x_raw
-    global train_y_raw
     global test_x_raw
     
     with open("data_set/train_set_x.csv","r",encoding='UTF8') as csvfile:
@@ -43,24 +44,32 @@ def load_dataset():
 #tfidf preprocessing - convert train_x_raw and test_x_raw to sparse matrix with size of (num_documents,num_features) 
 def tfidf_preprocess():
     global train_x_raw
-    global train_y_raw
     global test_x_raw
     train_x = []
     test_x = []
     
-    vec = TfidfVectorizer(decode_error='strict',analyzer='char',min_df=0)
+    vec = TfidfVectorizer(decode_error='strict',analyzer='char')
     train_x=vec.fit_transform(train_x_raw)
-    features = vec.get_feature_names()
-    #print(len(dict(zip(features,vec.idf_))))
-    new_features = features[0:220]
+
+
+    # features = vec.get_feature_names()
+    # print(dict(zip(features,vec.idf_)))
+    # new_features = features[0:220]
     # print(new_features)
-    # print(features)
+    lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y)
+    model = SelectFromModel(lsvc, prefit=True)
+
+    train_x = model.transform(train_x)
+    print(train_x.shape)
+    # print("number of features: ",len(features))
+    # print("\nfeatures: ",features)
     
     # vec_less_features = TfidfVectorizer(decode_error='strict',analyzer='char',min_df=0,vocabulary=new_features)
     # train_x=vec_less_features.fit_transform(train_x_raw)
     
-    vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',min_df=0,vocabulary=vec.get_feature_names())
+    vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',vocabulary=vec.get_feature_names())
     test_x = vec2.fit_transform(test_x_raw)
+    test_x = model.transform(test_x)
     # test_x = vec_less_features.fit_transform(test_x_raw)
     #print(test_x)
     #print("train_x is a matrix with size : ",train_x.shape[0],train_x.shape[1])
@@ -86,17 +95,16 @@ def logistic_regression(train_x,train_y,test_x):
             output.write("\n")
 
 
+    
+#--------------------------------------------------------------------------------------------------------
 # Decision tree node
 class Node:
     pos_child = None
     neg_child = None
     split_value = None
-    is_leaf = False
     def __init__(self,x_set,findex):
         self.x_set = x_set
         self.findex = findex
-    
-#--------------------------------------------------------------------------------------------------------
 
 # Decision Tree
 class Decision_tree:
@@ -234,7 +242,7 @@ def train_accuracy(predict_y,train_y):
     return correct/len(predict_y)
 
 def output_predict_to_file(predict_y):
-    with open("output_data_set/decision_tree_predict.csv","w",encoding='UTF8') as output:
+    with open("output_data_set/decision_tree_predict_lessf.csv","w",encoding='UTF8') as output:
         output.write("Id,Category")
         output.write("\n")
         for i in range(len(predict_y)):
@@ -244,12 +252,14 @@ def output_predict_to_file(predict_y):
             output.write("\n")
             
 
-print("start running")
+print("start running...")
 load_dataset()
 train_x,test_x=tfidf_preprocess()
-# logistic_regression(train_x,train_y,test_x)
+logistic_regression(train_x,train_y,test_x)
+
 
 #decision tree
+
 dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y)
 root_set = dt.combine_set()
 root=Node(root_set,0)
@@ -261,4 +271,5 @@ print("finish predicting y...")
 output_predict_to_file(predict_y_values)
 # print("train accuracy: ",train_accuracy(predict_y_values,train_y))
 print("output file complete")
+
 

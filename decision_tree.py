@@ -13,12 +13,12 @@ train_y = []
 test_x_raw = []
 
 #load two train data files, one test data file, and formatting them
-def load_dataset():
+def load_dataset(train_x_param, train_y_param, test_x_param):
     
     global train_x_raw
     global test_x_raw
     
-    with open("data_set/train_set_x2.csv","r",encoding='UTF8') as csvfile:
+    with open(train_x_param,"r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
@@ -27,13 +27,13 @@ def load_dataset():
             l=text_deletenum.replace(" ","").lower()
             train_x_raw.append(l)
 
-    with open("data_set/train_set_y2.csv","r",encoding='UTF8') as csvfile:
+    with open(train_y_param,"r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
             train_y.append(row[1])
         
-    with open("data_set/test_set_x.csv","r",encoding='UTF8') as csvfile:
+    with open(test_x_param,"r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
@@ -52,7 +52,7 @@ def tfidf_preprocess():
     train_x=vec.fit_transform(train_x_raw)
 
 
-    features = vec.get_feature_names()
+    # features = vec.get_feature_names()
     # print(dict(zip(features,vec.idf_)))
     # new_features = features[0:220]
     # print(new_features)
@@ -76,8 +76,8 @@ def tfidf_preprocess():
     #print("train_y is an array with size: ",len(train_y))
     return train_x,test_x
     
-# Library function : logisticRegression    
-def logistic_regression(train_x,train_y,test_x):
+# Library function : logistic classification    
+def logistic_classification(train_x,train_y,test_x):
     lr_classifier = LogisticRegression(penalty='l2', C=1)
     lr_classifier.fit(train_x, train_y)
     # predict on the test file
@@ -256,12 +256,16 @@ def output_predict_to_file(predict_y):
             
 
 print("start running...")
-load_dataset()
+load_dataset("data_set/train_set_x2.csv","data_set/train_set_y2.csv","data_set/test_set_x.csv")
+#Prepreocess the training set and test set
 train_x,test_x=tfidf_preprocess()
-logistic_regression(train_x,train_y,test_x)
+
+#Library function: logistic 
+#logistic_classification(train_x,train_y,test_x)
 
 
 #decision tree
+#preprocess feature column
 featured_columns = {}
 for column in range(train_x.shape[1]):
     for row in range(train_x.shape[0]):
@@ -269,20 +273,26 @@ for column in range(train_x.shape[1]):
             featured_columns[column] = []
         else:
             featured_columns[column].append(train_x[row,column])
+
+#Initialize the decision tree
 dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y,featured_columns)
 print(dt.get_sum_dict(featured_columns))
 root_set = dt.combine_set()
 root=Node(root_set,0)
 
+#Start building/training the tree
 print("start building tree...")
 dt.build_tree(root)
 
+#Start predicting the test set
 print("finish building tree, start predicting y...")
 predict_y_values=dt.predict_y(root,test_x)
 # predict_y_values=dt.predict_y(root,train_x)
 
+#Output the result to csv file
 print("finish predicting y...")
 output_predict_to_file(predict_y_values)
 # print("train accuracy: ",train_accuracy(predict_y_values,train_y))
 print("output file complete")
+
 

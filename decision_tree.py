@@ -4,6 +4,8 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer 
 from sklearn.linear_model import LogisticRegression
 import math
+from sklearn.svm import LinearSVC
+from sklearn.feature_selection import SelectFromModel
 
 
 train_x_raw = []
@@ -46,20 +48,28 @@ def tfidf_preprocess():
     train_x = []
     test_x = []
     
-    vec = TfidfVectorizer(decode_error='strict',analyzer='char',min_df=0)
+    vec = TfidfVectorizer(decode_error='strict',analyzer='char')
     train_x=vec.fit_transform(train_x_raw)
+
+
     features = vec.get_feature_names()
     # print(dict(zip(features,vec.idf_)))
     # new_features = features[0:220]
     # print(new_features)
+    lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y)
+    model = SelectFromModel(lsvc, prefit=True)
+
+    train_x = model.transform(train_x)
+    print(train_x.shape)
     # print("number of features: ",len(features))
     # print("\nfeatures: ",features)
     
     # vec_less_features = TfidfVectorizer(decode_error='strict',analyzer='char',min_df=0,vocabulary=new_features)
     # train_x=vec_less_features.fit_transform(train_x_raw)
     
-    vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',min_df=0,vocabulary=vec.get_feature_names())
+    vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',vocabulary=vec.get_feature_names())
     test_x = vec2.fit_transform(test_x_raw)
+    test_x = model.transform(test_x)
     # test_x = vec_less_features.fit_transform(test_x_raw)
     #print(test_x)
     #print("train_x is a matrix with size : ",train_x.shape[0],train_x.shape[1])
@@ -245,7 +255,7 @@ def output_predict_to_file(predict_y):
 print("start running...")
 load_dataset()
 train_x,test_x=tfidf_preprocess()
-# logistic_regression(train_x,train_y,test_x)
+logistic_regression(train_x,train_y,test_x)
 
 
 #decision tree

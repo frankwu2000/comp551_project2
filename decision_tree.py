@@ -9,16 +9,11 @@ from sklearn.feature_selection import SelectFromModel
 import numpy as np
 
 
-train_x_raw = []
-train_y = []
-test_x_raw = []
-
 #load two train data files, one test data file, and formatting them
 def load_dataset(train_x_param, train_y_param, test_x_param):
-    
-    global train_x_raw
-    global test_x_raw
-    
+    train_x_raw = []
+    train_y_raw = []
+    test_x_raw =[]
     with open(train_x_param,"r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
@@ -32,7 +27,7 @@ def load_dataset(train_x_param, train_y_param, test_x_param):
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
-            train_y.append(row[1])
+            train_y_raw.append(row[1])
         
     with open(test_x_param,"r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
@@ -42,25 +37,27 @@ def load_dataset(train_x_param, train_y_param, test_x_param):
             l=text_deletenum.replace(" ","").lower()
             test_x_raw.append(l)
 
+    return train_x_raw,train_y_raw,test_x_raw
+
 #tfidf preprocessing - convert train_x_raw and test_x_raw to sparse matrix with size of (num_documents,num_features) 
-def tfidf_preprocess():
-    global train_x_raw
-    global test_x_raw
+def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
+    
     train_x = []
     test_x = []
-    
+
     vec = TfidfVectorizer(decode_error='strict',analyzer='char',dtype=np.float32)
     train_x=vec.fit_transform(train_x_raw)
 
-
+    print("start svc train_x")
     # features = vec.get_feature_names()
     # print(dict(zip(features,vec.idf_)))
     # new_features = features[0:220]
     # print(new_features)
-    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(train_x, train_y)
+    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(train_x, train_y_raw)
     model = SelectFromModel(lsvc, prefit=True)
 
     train_x = model.transform(train_x)
+    print("finish svc train_x")
     print(train_x.shape)
     # print("number of features: ",len(features))
     # print("\nfeatures: ",features)
@@ -94,6 +91,7 @@ def logistic_classification(train_x,train_y,test_x,output_filename):
             output.write(",")
             output.write(test_y_pred_temp[i])
             output.write("\n")
+    print("output logistic complete")
 
 
     
@@ -254,15 +252,18 @@ def output_predict_to_file(predict_y,output_filename):
             output.write(",")
             output.write(predict_y[i])
             output.write("\n")
+    print("output file complete")
             
-
+#-----------start runing-----------
 print("start running...")
-load_dataset("data_set/train_set_x.csv","data_set/train_set_y.csv","data_set/test_set_x.csv")
+train_x_raw,train_y_raw,test_x_raw = load_dataset("data_set/train_set_x.csv","data_set/train_set_y.csv","data_set/test_set_x.csv")
+
+
 #Prepreocess the training set and test set
-train_x,test_x=tfidf_preprocess()
+train_x,test_x=tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw)
 
 #Library function: logistic 
-#logistic_classification(train_x,train_y,test_x,"output_data_set/library_logistic_output.csv")
+# logistic_classification(train_x,train_y_raw,test_x,"output_data_set/library_logistic_output.csv")
 
 
 #decision tree
@@ -276,7 +277,7 @@ for column in range(train_x.shape[1]):
             featured_columns[column].append(train_x[row,column])
 
 #Initialize the decision tree
-dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y,featured_columns)
+dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y_raw,featured_columns)
 root=Node(dt.combine_set(),0)
 
 #Start building/training the tree
@@ -292,6 +293,6 @@ predict_y_values=dt.predict_y(root,test_x)
 print("finish predicting y...")
 output_predict_to_file(predict_y_values,"output_data_set/decision_tree_predict_1000_samples.csv")
 # print("train accuracy: ",train_accuracy(predict_y_values,train_y))
-print("output file complete")
+
 
 

@@ -18,7 +18,7 @@ def load_dataset():
     global train_x_raw
     global test_x_raw
     
-    with open("data_set/train_set_x.csv","r",encoding='UTF8') as csvfile:
+    with open("data_set/train_set_x2.csv","r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
@@ -27,7 +27,7 @@ def load_dataset():
             l=text_deletenum.replace(" ","").lower()
             train_x_raw.append(l)
 
-    with open("data_set/train_set_y.csv","r",encoding='UTF8') as csvfile:
+    with open("data_set/train_set_y2.csv","r",encoding='UTF8') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
@@ -105,15 +105,18 @@ class Node:
     def __init__(self,x_set,findex):
         self.x_set = x_set
         self.findex = findex
+        
+
 
 # Decision Tree
 class Decision_tree:
     
-    def __init__(self,threshold,max_feature_index,train_x,train_y):
+    def __init__(self,threshold,max_feature_index,train_x,train_y,featured_columns):
         self.threshold = threshold
         self.max_feature_index = max_feature_index
         self.train_x = train_x
         self.train_y = train_y
+        self.featured_columns = featured_columns
         
     def build_tree(self,cur_node):
         if cur_node.findex > self.max_feature_index:
@@ -198,28 +201,24 @@ class Decision_tree:
     
     def entropy(self,xy_dic):
         total_entropy = 0
-        total_count_set = 0
-        for key in xy_dic.keys():
-            total_count_set += len(xy_dic[key])
+        total_count_set = self.get_sum_dict(xy_dic)
         for key in xy_dic.keys():
             total_entropy -= len(xy_dic[key])/total_count_set * math.log(len(xy_dic[key])/total_count_set,2)
         return total_entropy
 
     def information_gain(self,parent_set, split_value, splitfeature_index):
         children = self.create_child(parent_set,split_value,splitfeature_index)
-        totalcount = len(children[0].items())+len(children[1].items())
-        return children , self.entropy(parent_set) - len(children[0].items())/totalcount*self.entropy(children[0]) - len(children[1].items())/totalcount*self.entropy(children[1])
+        child0count = self.get_sum_dict(children[0])
+        child1count = self.get_sum_dict(children[1])
+        totalcount = child0count + child1count
+        return children , self.entropy(parent_set) - child0count/totalcount*self.entropy(children[0]) - child1count/totalcount*self.entropy(children[1])
 
     def split_node(self,findex,parent_set):
         split_values=[]
         #get featured column to a list
-        featured_column = []
-        for i in range(self.train_x.shape[0]):
-            featured_column.append(self.train_x[i,findex])
-        
-        for i in range(len(featured_column)):
+        for i in range(len(self.featured_columns[findex])):
             if i-1 >= 0:
-                split_values.append(featured_column[i-1]+(featured_column[i]-featured_column[i-1])/2)
+                split_values.append(self.featured_columns[findex][i-1]+(self.featured_columns[findex][i]-self.featured_columns[findex][i-1])/2)
         best_info_gain = -10000
         best_split_value = 0
         split_value_to_children_dic = {}
@@ -231,7 +230,11 @@ class Decision_tree:
                 best_split_value = split_value
         return split_value_to_children_dic[best_info_gain],best_info_gain,best_split_value
     
-    
+    def get_sum_dict(self,x_set):
+        sum = 0
+        for key in x_set.keys():
+            sum += len(x_set[key])
+        return sum
             
 #--------------------------------------------------------------------------------------------------------
 def train_accuracy(predict_y,train_y):
@@ -259,16 +262,27 @@ logistic_regression(train_x,train_y,test_x)
 
 
 #decision tree
-# dt = Decision_tree(0.001,train_x.shape[1]-1,train_x,train_y)
-# root_set = dt.combine_set()
-# root=Node(root_set,0)
-# print("start building tree...")
-# dt.build_tree(root)
-# print("finish building tree, start predicting y...")
-# predict_y_values=dt.predict_y(root,test_x)
-# # predict_y_values=dt.predict_y(root,train_x)
-# print("finish predicting y...")
-# output_predict_to_file(predict_y_values)
-# # print("train accuracy: ",train_accuracy(predict_y_values,train_y))
-# print("output file complete")
+featured_columns = {}
+for column in range(train_x.shape[1]):
+    for row in range(train_x.shape[0]):
+        if column not in featured_columns:
+            featured_columns[column] = []
+        else:
+            featured_columns[column].append(train_x[row,column])
+dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y,featured_columns)
+print(dt.get_sum_dict(featured_columns))
+root_set = dt.combine_set()
+root=Node(root_set,0)
+
+print("start building tree...")
+dt.build_tree(root)
+
+print("finish building tree, start predicting y...")
+predict_y_values=dt.predict_y(root,test_x)
+# predict_y_values=dt.predict_y(root,train_x)
+
+print("finish predicting y...")
+output_predict_to_file(predict_y_values)
+# print("train accuracy: ",train_accuracy(predict_y_values,train_y))
+print("output file complete")
 

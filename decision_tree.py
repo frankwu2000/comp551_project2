@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 import math
 from sklearn.svm import LinearSVC
 from sklearn.feature_selection import SelectFromModel
+import numpy as np
 
 
 train_x_raw = []
@@ -48,7 +49,7 @@ def tfidf_preprocess():
     train_x = []
     test_x = []
     
-    vec = TfidfVectorizer(decode_error='strict',analyzer='char')
+    vec = TfidfVectorizer(decode_error='strict',analyzer='char',dtype=np.float32)
     train_x=vec.fit_transform(train_x_raw)
 
 
@@ -56,7 +57,7 @@ def tfidf_preprocess():
     # print(dict(zip(features,vec.idf_)))
     # new_features = features[0:220]
     # print(new_features)
-    lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y)
+    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(train_x, train_y)
     model = SelectFromModel(lsvc, prefit=True)
 
     train_x = model.transform(train_x)
@@ -67,7 +68,7 @@ def tfidf_preprocess():
     # vec_less_features = TfidfVectorizer(decode_error='strict',analyzer='char',min_df=0,vocabulary=new_features)
     # train_x=vec_less_features.fit_transform(train_x_raw)
     
-    vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',vocabulary=vec.get_feature_names())
+    vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',vocabulary=vec.get_feature_names(),dtype=np.float32)
     test_x = vec2.fit_transform(test_x_raw)
     test_x = model.transform(test_x)
     # test_x = vec_less_features.fit_transform(test_x_raw)
@@ -256,7 +257,7 @@ def output_predict_to_file(predict_y,output_filename):
             
 
 print("start running...")
-load_dataset("data_set/train_set_x2.csv","data_set/train_set_y2.csv","data_set/test_set_x.csv")
+load_dataset("data_set/train_set_x.csv","data_set/train_set_y.csv","data_set/test_set_x.csv")
 #Prepreocess the training set and test set
 train_x,test_x=tfidf_preprocess()
 
@@ -276,8 +277,7 @@ for column in range(train_x.shape[1]):
 
 #Initialize the decision tree
 dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y,featured_columns)
-root_set = dt.combine_set()
-root=Node(root_set,0)
+root=Node(dt.combine_set(),0)
 
 #Start building/training the tree
 print("start building tree...")

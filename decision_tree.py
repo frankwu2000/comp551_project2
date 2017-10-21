@@ -212,7 +212,6 @@ class Decision_tree:
         
         best_info_gain = -10000
         best_split_value = 0
-        split_value_to_children_dic = {}
         best_children = []
         for split_value in self.featured_split_values[findex]:
             children,temp = self.information_gain(parent_set,split_value,findex)
@@ -231,9 +230,10 @@ class Decision_tree:
     def preprocess_possible_split(self):
         featured_columns = {}
         for column in range(self.train_x.shape[1]):
+           # print(column)
             for row in range(self.train_x.shape[0]):
                 if column not in featured_columns:
-                    featured_columns[column] = []
+                    featured_columns[column] = [self.train_x[row,column]]
                 else:
                     featured_columns[column].append(self.train_x[row,column])
 
@@ -241,6 +241,7 @@ class Decision_tree:
         featured_split_values =featured_columns
         #get featured column to a list
         for findex in featured_split_values.keys():
+           # print(findex)
             featured_list = sorted(featured_columns[findex])
             split_values=[]
             for i in range(len(featured_list)):

@@ -36,22 +36,22 @@ def split_train_set(train_x_raw,train_y_raw):
     train_y_list.append(train_y_raw[i:len(train_y_raw)])
     return train_x_list,train_y_list
 
-def output_filename_generate(train_x_list):
+def train_filename_generate(train_x_list):
     output_x_filenames=[]
     output_y_filenames=[]
     for i in range(len(train_x_list)):
-        output_x_fname="split_train_set/train_set_x_"
+        output_x_fname="data_set/split_train_set/train_set_x_"
         output_x_fname += str(i)
         output_x_fname += '.csv'
         output_x_filenames.append(output_x_fname)
 
-        output_y_fname="split_train_set/train_set_y_"
+        output_y_fname="data_set/split_train_set/train_set_y_"
         output_y_fname += str(i)
         output_y_fname += '.csv'
         output_y_filenames.append(output_y_fname)
     return output_x_filenames,output_y_filenames
 
-def output_file_generate(output_x_filenames,output_y_filenames,train_x_list,train_y_list):
+def train_file_generate(output_x_filenames,output_y_filenames,train_x_list,train_y_list):
     for findex in range(len(output_x_filenames)):
         with open(output_x_filenames[findex],"w",encoding="UTF8") as output:
             output.write("Id,Category")
@@ -72,37 +72,13 @@ def output_file_generate(output_x_filenames,output_y_filenames,train_x_list,trai
                 output.write(",")
                 output.write(train_y_list[findex][i])
                 output.write("\n")    
-     
-train_x_raw,train_y_raw = load_dataset("train_set_x.csv","train_set_y.csv")
-train_x_list,train_y_list = split_train_set(train_x_raw,train_y_raw)
-output_x_filenames,output_y_filenames = output_filename_generate(train_x_list)
 
-output_file_generate(output_x_filenames,output_y_filenames,train_x_list,train_y_list)
+def split_and_generate_split_training_set():     
+    train_x_raw,train_y_raw = load_dataset("data_set/train_set_x.csv","data_set/train_set_y.csv")
+    train_x_list,train_y_list = split_train_set(train_x_raw,train_y_raw)
+    output_x_filenames,output_y_filenames = train_filename_generate(train_x_list)
 
-x_trainset_list =[]
-y_trainset_list =[]
-output_file_list=[]
-
-for i in range(2,25):
-    x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
-    y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
-    output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")
-
-# for i in range(25,50):
-#     x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
-#     y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
-#     output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")
-
-# for i in range(50,75):
-#     x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
-#     y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
-#     output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")
-
-# for i in range(75,101):
-#     x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
-#     y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
-#     output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")
-
-#print(x_trainset_list)
+    train_file_generate(output_x_filenames,output_y_filenames,train_x_list,train_y_list)
 
 
+split_and_generate_split_training_set()

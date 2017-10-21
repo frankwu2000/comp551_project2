@@ -41,7 +41,7 @@ def load_dataset(train_x_param, train_y_param, test_x_param):
 
 #tfidf preprocessing - convert train_x_raw and test_x_raw to sparse matrix with size of (num_documents,num_features) 
 def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
-    print("start tfidf and svc data preprocessing...")    
+    #print("start tfidf and svc data preprocessing...")    
     
 
     vec = TfidfVectorizer(decode_error='strict',analyzer='char',dtype=np.float32)
@@ -56,7 +56,7 @@ def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
 
     train_x = model.transform(train_x)
    
-    print("train_x shape: ",train_x.shape)
+    #print("train_x shape: ",train_x.shape)
     # print("number of features: ",len(features))
     # print("\nfeatures: ",features)
     
@@ -66,7 +66,7 @@ def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
     vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',vocabulary=vec.get_feature_names(),dtype=np.float32)
     test_x = vec2.fit_transform(test_x_raw)
     test_x = model.transform(test_x)
-    print("test_x shape: ",test_x.shape)
+    #print("test_x shape: ",test_x.shape)
     # test_x = vec_less_features.fit_transform(test_x_raw)
     #print(test_x)
     #print("train_x is a matrix with size : ",train_x.shape[0],train_x.shape[1])
@@ -269,39 +269,56 @@ def output_predict_to_file(predict_y,output_filename):
     print("output file complete")
             
 #-----------start runing-----------------------------
-print("start running...")
-train_x_raw,train_y_raw,test_x_raw = load_dataset("data_set/train_set_x.csv","data_set/train_set_y.csv","data_set/test_set_x.csv")
+def train_decision_tree(train_x_param,train_y_param,test_x_param,output_filename):
+    #print("start running...")
+    train_x_raw,train_y_raw,test_x_raw = load_dataset(train_x_param,train_y_param,test_x_param)
 
-#Prepreocess the training set and test set
-train_x,test_x=tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw)
+    #Prepreocess the training set and test set
+    train_x,test_x=tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw)
 
-#Library function: logistic 
-# logistic_classification(train_x,train_y_raw,test_x,"output_data_set/library_logistic_output.csv")
+    #Library function: logistic 
+    # logistic_classification(train_x,train_y_raw,test_x,"output_data_set/library_logistic_output.csv")
 
-#-----------decision tree-----------------------------
-print("Initialize the decision tree...")
-#preprocess featured columns
+    #-----------decision tree-----------------------------
+    #print("Initialize the decision tree...")
+    #preprocess featured columns
 
 
-#Initialize the decision tree
-dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y_raw)
-dt.preprocess_possible_split()
+    #Initialize the decision tree
+    dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y_raw)
+    dt.preprocess_possible_split()
 
-root=Node(dt.combine_set(),0)
+    root=Node(dt.combine_set(),0)
 
-#Start building/training the tree
-print("start building tree...")
-dt.build_tree(root)
+    #Start building/training the tree
+    print("start building tree...")
+    dt.build_tree(root)
 
-#Start predicting the test set
-print("finish building tree, start predicting y...")
-predict_y_values=dt.predict_y(root,test_x)
-# predict_y_values=dt.predict_y(root,train_x)
+    #Start predicting the test set
+    print("finish building tree, start predicting y...")
+    predict_y_values=dt.predict_y(root,test_x)
+    # predict_y_values=dt.predict_y(root,train_x)
 
-#Output the result to csv file
-print("finish predicting y, start output result to file...")
-output_predict_to_file(predict_y_values,"output_data_set/decision_tree_predict.csv")
-# print("train accuracy: ",train_accuracy(predict_y_values,train_y))
+    #Output the result to csv file
+    #print("finish predicting y, start output result to file...")
+    output_predict_to_file(predict_y_values,output_filename)
+    # print("train accuracy: ",train_accuracy(predict_y_values,train_y))
+
+#train_decision_tree("data_set/train_set_x.csv","data_set/train_set_y.csv","data_set/test_set_x.csv","output_data_set/decision_tree_predict.csv")
+
+x_trainset_list =[]
+y_trainset_list =[]
+output_file_list=[]
+
+for i in range(101):
+    x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
+    y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
+    output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")
+
+
+for i in range(len(output_file_list)):
+    print("process file "+str(i))
+    train_decision_tree(x_trainset_list[i],y_trainset_list[i],"data_set/test_set_x.csv",output_file_list[i])
 
 
 

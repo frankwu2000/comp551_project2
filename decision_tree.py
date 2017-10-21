@@ -310,7 +310,7 @@ x_trainset_list =[]
 y_trainset_list =[]
 output_file_list=[]
 
-for i in range(101):
+for i in range(2,25):
     x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
     y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
     output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")

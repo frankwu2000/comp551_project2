@@ -18,9 +18,10 @@ def load_dataset(train_x_param, train_y_param, test_x_param):
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
-            text_deleteurl = re.sub(r"http\S+","", row[1])
-            text_deletenum=re.sub("\d+","",text_deleteurl)
-            l=text_deletenum.replace(" ","").lower()
+            # text_deleteurl = re.sub(r"http\S+","", row[1])
+            # text_deletenum=re.sub("\d+","",text_deleteurl)
+            # l=text_deletenum.replace(" ","").lower()
+            l=row[1].replace(" ","").lower()
             train_x_raw.append(l)
 
     with open(train_y_param,"r",encoding='UTF8') as csvfile:
@@ -33,8 +34,9 @@ def load_dataset(train_x_param, train_y_param, test_x_param):
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
-            text_deletenum=re.sub("\d+","",row[1])
-            l=text_deletenum.replace(" ","").lower()
+            # text_deletenum=re.sub("\d+","",row[1])
+            # l=text_deletenum.replace(" ","").lower()
+            l=row[1].replace(" ","").lower()
             test_x_raw.append(l)
 
     return train_x_raw,train_y_raw,test_x_raw
@@ -51,12 +53,12 @@ def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
     # print(dict(zip(features,vec.idf_)))
     # new_features = features[0:220]
     # print(new_features)
-    lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y_raw)
-    model = SelectFromModel(lsvc, prefit=True)
+    # lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y_raw)
+    # model = SelectFromModel(lsvc, prefit=True)
 
-    train_x = model.transform(train_x)
+    # train_x = model.transform(train_x)
    
-    #print("train_x shape: ",train_x.shape)
+    print("train_x shape: ",train_x.shape)
     # print("number of features: ",len(features))
     # print("\nfeatures: ",features)
     
@@ -65,14 +67,14 @@ def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
     
     vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',vocabulary=vec.get_feature_names(),dtype=np.float32)
     test_x = vec2.fit_transform(test_x_raw)
-    test_x = model.transform(test_x)
+    # test_x = model.transform(test_x)
     #print("test_x shape: ",test_x.shape)
     # test_x = vec_less_features.fit_transform(test_x_raw)
     #print(test_x)
     #print("train_x is a matrix with size : ",train_x.shape[0],train_x.shape[1])
     #print("train_y is an array with size: ",len(train_y))
     return train_x,test_x
-    
+      
 # Library function : logistic classification    
 def logistic_classification(train_x,train_y,test_x,output_filename):
     lr_classifier = LogisticRegression(penalty='l2', C=1)

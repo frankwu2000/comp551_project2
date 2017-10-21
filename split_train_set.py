@@ -9,9 +9,10 @@ def load_dataset(train_x_param, train_y_param):
         reader = csv.reader(csvfile, delimiter=',')
         next(reader) #skip header of file
         for row in reader:
-            text_deleteurl = re.sub(r"http\S+","", row[1])
-            text_deletenum=re.sub("\d+","",text_deleteurl)
-            l=text_deletenum.replace(" ","").lower()
+            # text_deleteurl = re.sub(r"http\S+","", row[1])
+            # text_deletenum=re.sub("\d+","",text_deleteurl)
+            # l=text_deletenum.replace(" ","").lower()
+            l=row[1].replace(" ","").lower()
             train_x_raw.append(l)
 
     with open(train_y_param,"r",encoding='UTF8') as csvfile:

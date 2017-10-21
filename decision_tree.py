@@ -41,24 +41,22 @@ def load_dataset(train_x_param, train_y_param, test_x_param):
 
 #tfidf preprocessing - convert train_x_raw and test_x_raw to sparse matrix with size of (num_documents,num_features) 
 def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
+    print("start tfidf and svc data preprocessing...")    
     
-    train_x = []
-    test_x = []
 
     vec = TfidfVectorizer(decode_error='strict',analyzer='char',dtype=np.float32)
     train_x=vec.fit_transform(train_x_raw)
 
-    print("start svc train_x")
     # features = vec.get_feature_names()
     # print(dict(zip(features,vec.idf_)))
     # new_features = features[0:220]
     # print(new_features)
-    lsvc = LinearSVC(C=0.01, penalty="l1", dual=False).fit(train_x, train_y_raw)
+    lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y_raw)
     model = SelectFromModel(lsvc, prefit=True)
 
     train_x = model.transform(train_x)
-    print("finish svc train_x")
-    print(train_x.shape)
+   
+    print("train_x shape: ",train_x.shape)
     # print("number of features: ",len(features))
     # print("\nfeatures: ",features)
     
@@ -68,6 +66,7 @@ def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
     vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',vocabulary=vec.get_feature_names(),dtype=np.float32)
     test_x = vec2.fit_transform(test_x_raw)
     test_x = model.transform(test_x)
+    print("test_x shape: ",test_x.shape)
     # test_x = vec_less_features.fit_transform(test_x_raw)
     #print(test_x)
     #print("train_x is a matrix with size : ",train_x.shape[0],train_x.shape[1])
@@ -109,27 +108,24 @@ class Node:
 
 # Decision Tree
 class Decision_tree:
-    
-    def __init__(self,threshold,max_feature_index,train_x,train_y,featured_columns):
+    featured_split_values = {}
+
+    def __init__(self,threshold,max_feature_index,train_x,train_y):
         self.threshold = threshold
         self.max_feature_index = max_feature_index
         self.train_x = train_x
         self.train_y = train_y
-        self.featured_columns = featured_columns
         
     def build_tree(self,cur_node):
+
         if cur_node.findex > self.max_feature_index:
-            cur_node.is_leaf = True
-            #print(cur_node.x_set,cur_node.is_leaf)
             return cur_node
         
         childs_set,information_gain,best_split_value = self.split_node(cur_node.findex,cur_node.x_set)
         cur_node.split_value = best_split_value
+        
         if information_gain < self.threshold:
-            cur_node.is_leaf = True
-            #print(cur_node.x_set,cur_node.is_leaf)
             return cur_node
-        #print(cur_node.x_set,cur_node.is_leaf)
         cur_node.pos_child = Node(childs_set[0],cur_node.findex+1)
         cur_node.neg_child = Node(childs_set[1],cur_node.findex+1)
         self.build_tree(cur_node.pos_child)
@@ -213,21 +209,18 @@ class Decision_tree:
         return children , self.entropy(parent_set) - child0count/totalcount*self.entropy(children[0]) - child1count/totalcount*self.entropy(children[1])
 
     def split_node(self,findex,parent_set):
-        split_values=[]
-        #get featured column to a list
-        for i in range(len(self.featured_columns[findex])):
-            if i-1 >= 0:
-                split_values.append(self.featured_columns[findex][i-1]+(self.featured_columns[findex][i]-self.featured_columns[findex][i-1])/2)
+        
         best_info_gain = -10000
         best_split_value = 0
         split_value_to_children_dic = {}
-        for split_value in split_values:
+        best_children = []
+        for split_value in self.featured_split_values[findex]:
             children,temp = self.information_gain(parent_set,split_value,findex)
-            split_value_to_children_dic[temp]=children
             if temp > best_info_gain:
                 best_info_gain = temp
                 best_split_value = split_value
-        return split_value_to_children_dic[best_info_gain],best_info_gain,best_split_value
+                best_children = children
+        return best_children,best_info_gain,best_split_value
     
     def get_sum_dict(self,x_set):
         sum = 0
@@ -235,6 +228,27 @@ class Decision_tree:
             sum += len(x_set[key])
         return sum
             
+    def preprocess_possible_split(self):
+        featured_columns = {}
+        for column in range(self.train_x.shape[1]):
+            for row in range(self.train_x.shape[0]):
+                if column not in featured_columns:
+                    featured_columns[column] = []
+                else:
+                    featured_columns[column].append(self.train_x[row,column])
+
+        
+        featured_split_values =featured_columns
+        #get featured column to a list
+        for findex in featured_split_values.keys():
+            featured_list = sorted(featured_columns[findex])
+            split_values=[]
+            for i in range(len(featured_list)):
+                if i-1 >= 0 :
+                    if featured_list[i-1]!=0 and featured_list[i]!=0:
+                        split_values.append((featured_list[i-1]+featured_list[i])/2)
+            featured_split_values[findex]=split_values     
+        self.featured_split_values = featured_split_values
 #--------------------------------------------------------------------------------------------------------
 def train_accuracy(predict_y,train_y):
     correct=0
@@ -254,10 +268,9 @@ def output_predict_to_file(predict_y,output_filename):
             output.write("\n")
     print("output file complete")
             
-#-----------start runing-----------
+#-----------start runing-----------------------------
 print("start running...")
 train_x_raw,train_y_raw,test_x_raw = load_dataset("data_set/train_set_x.csv","data_set/train_set_y.csv","data_set/test_set_x.csv")
-
 
 #Prepreocess the training set and test set
 train_x,test_x=tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw)
@@ -265,19 +278,15 @@ train_x,test_x=tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw)
 #Library function: logistic 
 # logistic_classification(train_x,train_y_raw,test_x,"output_data_set/library_logistic_output.csv")
 
+#-----------decision tree-----------------------------
+print("Initialize the decision tree...")
+#preprocess featured columns
 
-#decision tree
-#preprocess feature column
-featured_columns = {}
-for column in range(train_x.shape[1]):
-    for row in range(train_x.shape[0]):
-        if column not in featured_columns:
-            featured_columns[column] = []
-        else:
-            featured_columns[column].append(train_x[row,column])
 
 #Initialize the decision tree
-dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y_raw,featured_columns)
+dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y_raw)
+dt.preprocess_possible_split()
+
 root=Node(dt.combine_set(),0)
 
 #Start building/training the tree
@@ -290,8 +299,8 @@ predict_y_values=dt.predict_y(root,test_x)
 # predict_y_values=dt.predict_y(root,train_x)
 
 #Output the result to csv file
-print("finish predicting y...")
-output_predict_to_file(predict_y_values,"output_data_set/decision_tree_predict_1000_samples.csv")
+print("finish predicting y, start output result to file...")
+output_predict_to_file(predict_y_values,"output_data_set/decision_tree_predict.csv")
 # print("train accuracy: ",train_accuracy(predict_y_values,train_y))
 
 

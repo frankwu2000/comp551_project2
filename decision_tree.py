@@ -119,15 +119,16 @@ class Decision_tree:
         self.train_y = train_y
         
     def build_tree(self,cur_node):
-
+        
         if cur_node.findex > self.max_feature_index:
             return cur_node
-        
         childs_set,information_gain,best_split_value = self.split_node(cur_node.findex,cur_node.x_set)
         cur_node.split_value = best_split_value
         
         if information_gain < self.threshold:
+           
             return cur_node
+        
         cur_node.pos_child = Node(childs_set[0],cur_node.findex+1)
         cur_node.neg_child = Node(childs_set[1],cur_node.findex+1)
         self.build_tree(cur_node.pos_child)
@@ -287,9 +288,8 @@ def train_decision_tree(train_x_param,train_y_param,test_x_param,output_filename
 
 
     #Initialize the decision tree
-    dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y_raw)
+    dt = Decision_tree(0.0001,train_x.shape[1]-1,train_x,train_y_raw)
     dt.preprocess_possible_split()
-
     root=Node(dt.combine_set(),0)
 
     #Start building/training the tree
@@ -312,7 +312,7 @@ x_trainset_list =[]
 y_trainset_list =[]
 output_file_list=[]
 
-for i in range(2,25):
+for i in range(0,30):
     x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
     y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
     output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")

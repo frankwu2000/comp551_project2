@@ -38,6 +38,6 @@ def output_predict_to_file(predict_y,output_filename):
             output.write("\n")
     print("output file complete")
 
-output_predict_to_file(combine_output_file(101),"output_data_set/decision_tree_output_with_split.csv")
+output_predict_to_file(combine_output_file(101),"output_data_set/decision_tree_output_with_split2.csv")
 
             

@@ -287,7 +287,7 @@ def train_decision_tree(train_x_param,train_y_param,test_x_param,output_filename
 
 
     #Initialize the decision tree
-    dt = Decision_tree(0.01,train_x.shape[1]-1,train_x,train_y_raw)
+    dt = Decision_tree(0.0001,train_x.shape[1]-1,train_x,train_y_raw)
     dt.preprocess_possible_split()
 
     root=Node(dt.combine_set(),0)
@@ -312,7 +312,7 @@ x_trainset_list =[]
 y_trainset_list =[]
 output_file_list=[]
 
-for i in range(25,50):
+for i in range(25,55):
     x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
     y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
     output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")

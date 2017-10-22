@@ -30,12 +30,15 @@ This decision tree learning used information gain to determine priority of all p
  
 
 - Data preprocessing
+
   For the input training data, TF-IDF is used to convert train_set_x and test_set_x into sparse matrix with every character in the sample documents as features. Ridge regression is also used for training data to reduce number of features.
 
 - Decision tree 
+
   The decision tree expand node based on information gain used entropy of each set. I first preprocess all possible split point for each feature by calculating the midpoint of all training x value. Then use information gain to pick the split with gratest information gain. The tree keeps expanding until the information gain is smaller than the predefined threshold or it used all features.
   
 - Conclusion
+
  The outcome is not ideal since it only get 0.59 accuracy on the given test set. 
  Still need to improve the algorithm.
 

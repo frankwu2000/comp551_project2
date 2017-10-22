@@ -53,11 +53,11 @@ def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
     # print(dict(zip(features,vec.idf_)))
     # new_features = features[0:220]
     # print(new_features)
-    # lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y_raw)
-    # model = SelectFromModel(lsvc, prefit=True)
+    lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y_raw)
+    model = SelectFromModel(lsvc, prefit=True)
 
-    # train_x = model.transform(train_x)
-   
+    train_x = model.transform(train_x)
+   # 
     print("train_x shape: ",train_x.shape)
     # print("number of features: ",len(features))
     # print("\nfeatures: ",features)
@@ -67,7 +67,7 @@ def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
     
     vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',vocabulary=vec.get_feature_names(),dtype=np.float32)
     test_x = vec2.fit_transform(test_x_raw)
-    # test_x = model.transform(test_x)
+    test_x = model.transform(test_x)
     #print("test_x shape: ",test_x.shape)
     # test_x = vec_less_features.fit_transform(test_x_raw)
     #print(test_x)

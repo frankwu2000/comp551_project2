@@ -3,7 +3,7 @@ Machine learning project
   
  - Overview  
 This is a course project for Applied Machine Learning.  
-The project used TF-IDF,Ridge regression(L2-regularization) decision tree learning and bagging to classify different language class each sample sentence belongs to.  
+The project used TF-IDF,Ridge regression(L2-regularization), decision tree learning and bagging(kinda) to classify different language class each sample sentence belongs to.  
 This decision tree learning used information gain to determine priority of all possible split/creating tree node.
 
 - File structure  
@@ -35,7 +35,11 @@ This decision tree learning used information gain to determine priority of all p
 
 - Decision tree 
 
-  The decision tree expand node based on information gain used entropy of each set. I first preprocess all possible split point for each feature by calculating the midpoint of all training x value. Then use information gain to pick the split with gratest information gain. The tree keeps expanding until the information gain is smaller than the predefined threshold or it used all features.
+  The decision tree expand node based on information gain used entropy of each set. I first preprocess all possible split point for each feature by calculating the midpoint of all training x value. Then use information gain to pick the split with gratest information gain. The tree keeps expanding until the information gain is smaller than the predefined threshold or it used all features.  
+  
+  NOTE: threshold and max_feature_num are input parameter when initalizing decision tree class.
+    - threshold is the smallest information gain allowed to grow the tree.   
+    - max_feature_num is the maximum depth allowed to grow the tree.
   
 - Conclusion
 

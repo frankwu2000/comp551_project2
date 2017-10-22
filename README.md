@@ -39,6 +39,6 @@ This decision tree learning used information gain to determine priority of all p
   
 - Conclusion
 
- The outcome is not ideal since it only get 0.59 accuracy on the given test set. 
+   The outcome is not ideal since it only get 0.59 accuracy on the given test set. 
  Still need to improve the algorithm.
 

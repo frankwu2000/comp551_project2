@@ -53,10 +53,10 @@ def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
     # print(dict(zip(features,vec.idf_)))
     # new_features = features[0:220]
     # print(new_features)
-    lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y_raw)
-    model = SelectFromModel(lsvc, prefit=True)
+    # lsvc = LinearSVC(C=0.01, penalty="l2", dual=False).fit(train_x, train_y_raw)
+    # model = SelectFromModel(lsvc, prefit=True)
 
-    train_x = model.transform(train_x)
+    # train_x = model.transform(train_x)
    
     print("train_x shape: ",train_x.shape)
     # print("number of features: ",len(features))
@@ -64,36 +64,16 @@ def tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw):
     
     # vec_less_features = TfidfVectorizer(decode_error='strict',analyzer='char',min_df=0,vocabulary=new_features)
     # train_x=vec_less_features.fit_transform(train_x_raw)
-    
+     
     vec2 = TfidfVectorizer(decode_error='strict',analyzer='char',vocabulary=vec.get_feature_names(),dtype=np.float32)
     test_x = vec2.fit_transform(test_x_raw)
-    test_x = model.transform(test_x)
+    # test_x = model.transform(test_x)
     #print("test_x shape: ",test_x.shape)
     # test_x = vec_less_features.fit_transform(test_x_raw)
     #print(test_x)
     #print("train_x is a matrix with size : ",train_x.shape[0],train_x.shape[1])
     #print("train_y is an array with size: ",len(train_y))
     return train_x,test_x
-    
-# Library function : logistic classification    
-def logistic_classification(train_x,train_y,test_x,output_filename):
-    lr_classifier = LogisticRegression(penalty='l2', C=1)
-    lr_classifier.fit(train_x, train_y)
-    # predict on the test file
-    test_y_pred = lr_classifier.predict(test_x)
-    test_y_pred_temp = test_y_pred.tolist()
-
-    # write the output to the output file
-    with open(output_filename,'w') as output:
-        output.write("Id,Category")
-        output.write("\n")
-        for i in range(len(test_y_pred_temp)):
-            output.write(str(i))
-            output.write(",")
-            output.write(test_y_pred_temp[i])
-            output.write("\n")
-    print("output logistic complete")
-
 
     
 #--------------------------------------------------------------------------------------------------------
@@ -312,15 +292,29 @@ x_trainset_list =[]
 y_trainset_list =[]
 output_file_list=[]
 
-for i in range(0,30):
-    x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
-    y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
-    output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")
+# for i in range(0,30):
+#     x_trainset_list.append("data_set/split_train_set/train_set_x_" + str(i) +".csv")
+#     y_trainset_list.append("data_set/split_train_set/train_set_y_" + str(i) +".csv")
+#     output_file_list.append("output_data_set/output_data_set_split/decision_tree_output_" + str(i) +".csv")
+
+#------------------library logisitic---------------------------
+# for i in range(len(output_file_list)):
+#     print("process file "+str(i))
+#     train_decision_tree(x_trainset_list[i],y_trainset_list[i],"data_set/test_set_x.csv",output_file_list[i])
+
+def library_logisitic(train_x_param,train_y_param,test_x_param,output_filename):
+    #print("start running...")
+    train_x_raw,train_y_raw,test_x_raw = load_dataset(train_x_param,train_y_param,test_x_param)
+
+    #Prepreocess the training set and test set
+    train_x,test_x=tfidf_preprocess(train_x_raw,train_y_raw,test_x_raw)
+
+    #Library function: logistic 
+    logistic_classification(train_x,train_y_raw,test_x,output_filename)
 
 
-for i in range(len(output_file_list)):
-    print("process file "+str(i))
-    train_decision_tree(x_trainset_list[i],y_trainset_list[i],"data_set/test_set_x.csv",output_file_list[i])
+# library_logisitic("data_set/train_set_x.csv","data_set/train_set_y.csv","data_set/test_set_x.csv","output_data_set/logistic_predict_feature_selection.csv")
+
 
 
 
